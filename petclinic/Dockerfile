@@ -1,20 +1,27 @@
 FROM amazonlinux:2023
-# docker build -t anutkarudeha/petclinic-app:v1 .
-# docker build -t anutkarudeha/petclinic_app_build:v1 -f petclinic_app_build .
 
-RUN yum update -y && yum install -y git java-17-amazon-corretto \
-    && yum clean all && \
-    rm -rf /var/cache/yumS
+ARG APPUSER=petclinic 
+ENV APP_USER=$APPUSER
 
-# ENTRYPOINT ["/bin/bash", "-c", "/scripts/test.sh"]
-# CMD ["/bin/bash", "-c", "/scripts/test.sh"]
+RUN yum update -y && yum install -y java-17-amazon-corretto && yum install -y mariadb105-server && \
+    yum clean all && \
+    rm -rf /var/cache/yum
 
-# docker run -it -v //c/test/getting-started-app/demo2/artifact:/artifact -v //c/test/getting-started-app/demo2/scripts:/scripts anutkarudeha/petclinic_app_build:v1  /bin/bashі
+RUN yum -y install python3 \
+    python3-pip \
+    shadow-utils
 
-FROM public.ecr.aws/bitnami/java:latest
-VOLUME /tmp
-ADD target/spring-petclinic-2.3.0.jar app.jar
-EXPOSE 80
-RUN apt-get update
-RUN apt-get -y install awscli
-ENTRYPOINT env spring.datasource.password=$(aws ssm get-parameter --name /database/password --with-decrypt --region $AWS_REGION | grep Value | cut -d '"' -f4) java -Djava.security.egd=file:/dev/./urandom -jar /app.jar
+RUN mkdir run_java_project
+COPY ./spring-petclinic-2.3.1.BUILD-SNAPSHOT.jar /run_java_project
+
+RUN echo -e $APPUSER 
+RUN useradd $APPUSER && \
+    chown $APPUSER /run_java_project/spring-petclinic-2.3.1.BUILD-SNAPSHOT.jar 
+
+USER $APPUSER
+WORKDIR /run_java_project
+
+EXPOSE 8080
+
+ENTRYPOINT ["java","-Dspring.profiles.active=mysql","-jar","/run_java_project/spring-petclinic-2.3.1.BUILD-SNAPSHOT.jar"]
+# ENTRYPOINT ["java","-jar","/run_java_project/spring-petclinic-2.3.1.BUILD-SNAPSHOT.jar"]
