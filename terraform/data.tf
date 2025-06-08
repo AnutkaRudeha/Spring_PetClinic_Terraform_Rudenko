@@ -1,23 +1,18 @@
-data "aws_caller_identity" "current" {}
-
-data "aws_ecr_repository" "image_repo" {
-  name = "${var.stack}-petclinic"
-}
-
-data "aws_ssm_parameter" "dbpassword" {
-  name = "/${var.stack}/db/password"
-}
-
+# # Get the latest Amazon Linux 2 AMI
 data "aws_ami" "amazon_linux_2" {
   most_recent = true
-  owners      = ["amazon"]
+  owners      = ["926680503007"]
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+    values = ["test-app-app"]
   }
+
+  # filter {
+  #   name   = "virtualization-type"
+  #   values = ["hvm"]
+  # }
 }
 
-data "aws_availability_zones" "available" {
-  state = "available"
-} 
+# Get current AWS account ID
+data "aws_caller_identity" "current" {} 

@@ -24,4 +24,5 @@ WORKDIR /run_java_project
 EXPOSE 8080
 
 ENTRYPOINT ["java","-Dspring.profiles.active=mysql","-jar","/run_java_project/spring-petclinic-2.3.1.BUILD-SNAPSHOT.jar"]
+
 # ENTRYPOINT ["java","-jar","/run_java_project/spring-petclinic-2.3.1.BUILD-SNAPSHOT.jar"]
