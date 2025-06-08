@@ -1,23 +1,23 @@
 # Security group for the application
 resource "aws_security_group" "app" {
-  name        = "${var.stack}-app-sg"
+  name        = "${var.app_name}-app-sg"
   description = "Security group for PetClinic application"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = module.vpc.vpc_id
 
   ingress {
-    from_port   = var.app_port
-    to_port     = var.app_port
+    from_port   = 8080
+    to_port     = 8080
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow application traffic"
+    description = "App port"
   }
 
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow SSH access"
+ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    self        = true
+    description = "App 2port"
   }
 
   egress {
@@ -29,14 +29,14 @@ resource "aws_security_group" "app" {
   }
 
   tags = {
-    Name        = "${var.stack}-app-sg"
+    Name        = "${var.app_name}-app-sg"
     Environment = var.environment
   }
 }
 
 # IAM role for EC2 instance
 resource "aws_iam_role" "ec2_role" {
-  name = "${var.stack}-ec2-role"
+  name = "${var.app_name}-ec2-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -52,85 +52,37 @@ resource "aws_iam_role" "ec2_role" {
   })
 
   tags = {
-    Name        = "${var.stack}-ec2-role"
+    Name        = "${var.app_name}-ec2-role"
     Environment = var.environment
   }
+}
+
+resource "aws_iam_role_policy_attachment" "test-attach" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 # IAM instance profile
 resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "${var.stack}-ec2-profile"
+  name = "${var.app_name}-ec2-profile"
   role = aws_iam_role.ec2_role.name
-}
-
-# IAM policy for EC2 to pull from ECR
-resource "aws_iam_role_policy" "ec2_ecr_policy" {
-  name = "${var.stack}-ec2-ecr-policy"
-  role = aws_iam_role.ec2_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "ecr:GetAuthorizationToken",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:GetDownloadUrlForLayer",
-          "ecr:BatchGetImage"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
 }
 
 # EC2 instance
 resource "aws_instance" "app" {
-  ami                    = data.aws_ami.amazon_linux_2.id
-  instance_type          = var.instance_type
-  key_name              = var.key_name
-  vpc_security_group_ids = [aws_security_group.app.id]
-  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
-  subnet_id              = aws_subnet.public[0].id
+  ami                         = data.aws_ami.amazon_linux_2.id
+  instance_type               = var.instance_type
+  vpc_security_group_ids      = [aws_security_group.app.id]
+  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
+  subnet_id                   = module.vpc.public_subnets[0]
+  associate_public_ip_address = true
 
-  user_data = <<-EOF
-              #!/bin/bash
-              # Update system
-              yum update -y
-              
-              # Install Docker
-              amazon-linux-extras install docker -y
-              systemctl enable docker
-              systemctl start docker
-              
-              # Install AWS CLI
-              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-              yum install -y unzip
-              unzip awscliv2.zip
-              ./aws/install
-              
-              # Login to ECR
-              aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com
-              
-              # Pull and run the container
-              docker pull anutkarudeha/petclinic:app-run-v1.5
-              docker run -d \
-                --name petclinic \
-                -p ${var.app_port}:${var.app_port} \
-                -e SPRING_PROFILES_ACTIVE=mysql \
-                -e MYSQL_URL=jdbc:mysql://${aws_instance.db.private_ip}:${var.db_port}/petclinic \
-                -e MYSQL_USER=petclinic \
-                -e MYSQL_PASS=${var.db_password} \
-                anutkarudeha/petclinic:app-run-v1.5
-              EOF
+  user_data = templatefile("${path.module}/script.sh", { version = var.app_version, port = 8080, ip_addrs = ["10.0.0.1", "10.0.0.2"] })
 
   tags = {
-    Name        = "${var.stack}-app"
+    Name        = "${var.app_name}-app"
     Environment = var.environment
   }
-
-  depends_on = [aws_instance.db]
 }
 
 # Output the application URL
@@ -138,3 +90,4 @@ output "app_url" {
   value = "http://${aws_instance.app.public_ip}:${var.app_port}"
   description = "URL for the PetClinic application"
 } 
+
