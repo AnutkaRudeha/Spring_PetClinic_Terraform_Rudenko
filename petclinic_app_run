@@ -3,13 +3,9 @@ FROM ubuntu:24.04
 ARG APPUSER=petclinic 
 ENV APP_USER=$APPUSER
 
-RUN apt update -y && apt install -y java-17-amazon-corretto && apt install -y mariadb105-server && \
+RUN apt update -y && apt install -y openjdk-11-jre && \
     apt clean all && \
     rm -rf /var/cache/apt
-
-RUN apt -y install python3 \
-    python3-pip \
-    shadow-utils
 
 RUN mkdir run_java_project
 COPY ./spring-petclinic-2.3.1.BUILD-SNAPSHOT.jar /run_java_project
