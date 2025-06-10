@@ -1,9 +1,9 @@
-FROM ubuntu:24.04
+FROM ubuntu:jammy
 
 ARG APPUSER=petclinic 
 ENV APP_USER=$APPUSER
 
-RUN apt update -y && apt install -y openjdk-11-jre && \
+RUN apt update -y && apt install -y openjdk-11-jre && apt install -y mysql-client   && \
     apt clean all && \
     rm -rf /var/cache/apt
 
