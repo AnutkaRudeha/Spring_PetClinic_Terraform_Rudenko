@@ -1,0 +1,77 @@
+name: Getting Started Demo
+
+on:
+  [workflow_dispatch]
+  
+jobs:
+  run_image:
+    name: Run petclinic_app_build Image
+    runs-on: ubuntu-latest
+    container:
+       image: anutkarudeha/petclinic_app_build:v3
+    steps:
+      - name: Fix Checkout
+        run: |
+          ldd --version
+
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Run the Docker image 
+        run: |
+          pwd
+          ls
+          export JAVA_HOME="/usr/lib/jvm/java-17-amazon-corretto.x86_64"
+          ./mvnw package
+
+          pwd
+          ls -la
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: petclinic_app_run
+          path: target/spring-petclinic-2.3.1.BUILD-SNAPSHOT.jar
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact
+          path: petclinic_app_run
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: petclinic_db
+          path: target/spring-petclinic-2.3.1.BUILD-SNAPSHOT.jar
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact1
+          path: petclinic_db
+
+  build_image:
+    needs: run_image
+    name: Build petclinic_app_run Image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: artifact
+          # path: target/spring-petclinic-2.3.1.BUILD-SNAPSHOT.jar
+      - run: |
+          pwd
+          ls
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: petclinic_app_run
+      - name: Build image
+        run: |
+          pwd
+          ls
+          docker build -t anutkarudeha/petclinic_app_run:v1.6 -f petclinic_app_run .
+          docker image push anutkarudeha/petclinic_app_run:v1.6
