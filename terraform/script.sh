@@ -18,4 +18,3 @@ docker run --net mynet12 --name petclinic_app \
   --env MYSQL_PASSWORD=petclinic -it -d anutkarudeha/petclinic_app_run:v1.6
 \
 docker ps -a
-# mysql -u petclinic -ppetclinic -h 18.169.237.3 petclinic 
