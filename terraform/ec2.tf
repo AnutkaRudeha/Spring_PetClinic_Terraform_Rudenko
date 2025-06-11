@@ -77,7 +77,7 @@ resource "aws_instance" "app" {
   subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
 
-  user_data = templatefile("${path.module}/scripts/script.sh", { version = var.app_version, port = 8080, ip_addrs = ["10.0.0.1", "10.0.0.2"] })
+  user_data = templatefile("${path.module}/script.sh", { version = var.app_version, port = 8080, ip_addrs = ["10.0.0.1", "10.0.0.2"] })
 
   tags = {
     Name        = "${var.app_name}-app"
