@@ -26,7 +26,7 @@ variable "instance_type" {
 variable "app_version" {
   description = "App version" 
   type = string
-  default = "v1.5"
+  default = "v1.6"
 }
 
 variable "app_port" {
