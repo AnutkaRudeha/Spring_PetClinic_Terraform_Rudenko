@@ -1,4 +1,4 @@
-name: Getting Started Demo
+name: Spring PetClinic Terraform Rudenko
 
 on:
   [workflow_dispatch]
