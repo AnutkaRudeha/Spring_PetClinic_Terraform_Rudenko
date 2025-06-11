@@ -1,0 +1,18 @@
+FROM mariadb:latest
+
+ENV MYSQL_USER=$DBUSER
+ENV MYSQL_PASS=$DBPASSWD
+ENV MYSQL_IP=$DBHOST
+ENV MYSQL_NAME=$DBNAME
+ENV MYSQL_URL=jdbc:mysql://$DBHOST:3306/$DBNAME
+
+ENTRYPOINT ["java","-Dspring.profiles.active=mysql","-jar","/run_java_project/spring-petclinic-2.3.1.BUILD-SNAPSHOT.jar"]
+
+# docker run --name petclinic_db --env MYSQL_USER=user --env MYSQL_PASS=1234567890 --env MYSQL_IP=192.168.33.3 --env MYSQL_NAME=db_app --env MYSQL_URL=jdbc:mysql://192.168.33.3:3306/db_app --env APP_USER=app_user --net mynet123 -d mysql:8.4.3
+# docker build -t anutkarudeha/petclinic_db:v1 -f petclinic_db .
+# docker run --net mynet123 --ip 192.168.0.1 --env-file env.list -it anutkarudeha/petclinic_db:v1 bash
+# docker run --net mynet123 --env MYSQL_USER=user --env MYSQL_PASS=1234567890 --env MYSQL_IP=192.168.33.3 --env MYSQL_NAME=db_app --env MYSQL_URL=jdbc:mysql://192.168.33.3:3306/db_app --env APP_USER=app_user -it anutkarudeha/petclinic_db:v1
+# --net mynet123 --env MYSQL_USER=user --env MYSQL_PASS=1234567890 --env MYSQL_IP=192.168.33.3 --env MYSQL_NAME=db_app --env MYSQL_URL=jdbc:mysql://192.168.33.3:3306/db_app --env APP_USER=app_user -i anutkarudeha/petclinic_db:v1
+# docker run --name petclinic_db --net mynet12 --ip 18.169.237.3 -p 3306:3306 --env MYSQL_USER=user --env MYSQL_PASSWORD=1234567890 --env MYSQL_IP=18.169.237.3 --env MYSQL_NAME=db_app --env MYSQL_ROOT_PASSWORD=1245 -d mysql:8.4.3
+# docker run --name petclinic_db --net mynet12 --ip 18.169.237.3 -p 3306:3306 --env MARIADB_USER=user --env MARIADB_DATABASE=db_app --env MARIADB_ROOT_PASSWORD=12345 -d mysql:8.0.0
+# docker run --name petclinic_db -p 3306:3306 --env MYSQL_USER=petclinic --env MYSQL_ROOT_PASSWORD=1234567890 --env MYSQL_DATABASE=petclinic --env MYSQL_PASSWORD=1234567890 --net mynet12 --ip 18.169.237.3 -d mysql:8.4.3
