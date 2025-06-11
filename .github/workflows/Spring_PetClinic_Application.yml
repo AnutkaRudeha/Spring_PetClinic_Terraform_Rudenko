@@ -38,16 +38,6 @@ jobs:
           name: artifact
           path: petclinic_app_run
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: petclinic_db
-          path: target/spring-petclinic-2.3.1.BUILD-SNAPSHOT.jar
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: artifact1
-          path: petclinic_db
-
   build_image:
     needs: run_image
     name: Build petclinic_app_run Image
