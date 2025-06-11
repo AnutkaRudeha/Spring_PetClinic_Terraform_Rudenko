@@ -1,6 +1,5 @@
-$port
 #!/bin/bash
-
+yum update -y
 docker run hello-world
 
 docker network rm mynet12 && docker network create -d bridge --subnet=18.169.237.0/24 mynet12
@@ -16,5 +15,5 @@ docker run --net mynet12 --name petclinic_app \
   --env MYSQL_PORT=3306 --env MYSQL_URL="jdbc:mysql://18.169.237.3:3306/petclinic" \
   --env MYSQL_DATABASE=petclinic --env MYSQL_USER=petclinic \
   --env MYSQL_PASSWORD=petclinic -it -d anutkarudeha/petclinic_app_run:v1.6
-\
+
 docker ps -a
